@@ -146,8 +146,7 @@ function renderSidebar() {
 		const alg = algorithms[key];
 		const li = document.createElement("li");
 		const btn = document.createElement("button");
-		btn.className = "alg-btn btn w-100 mb-2 " + (key === currentAlg ? "btn-light" : "btn-outline-light");
-		if (key === currentAlg) btn.classList.add("active");
+		btn.className = "alg-btn btn w-100 mb-2 btn-" + (key === currentAlg ? "light" : "outline-light");
 		btn.dataset.alg = key;
 		btn.textContent = alg.name;
 		li.appendChild(btn);
@@ -420,8 +419,12 @@ function setupEventListeners() {
 			startBtn.disabled = false;
 			resetArray();
 			renderAlgInfo();
-			getAlgBtns().forEach((b) => b.classList.remove("active"));
-			btn.classList.add("active");
+			getAlgBtns().forEach((b) => {
+				b.classList.remove("btn-light");
+				b.classList.add("btn-outline-light");
+			});
+			btn.classList.add("btn-light");
+			btn.classList.remove("btn-outline-light");
 		};
 	});
 }
