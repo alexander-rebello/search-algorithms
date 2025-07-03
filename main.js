@@ -146,7 +146,8 @@ function renderSidebar() {
 		const alg = algorithms[key];
 		const li = document.createElement("li");
 		const btn = document.createElement("button");
-		btn.className = "alg-btn btn w-100 mb-2" + (key === currentAlg ? " active" : "");
+		btn.className = "alg-btn btn w-100 mb-2 " + (key === currentAlg ? "btn-light" : "btn-outline-light");
+		if (key === currentAlg) btn.classList.add("active");
 		btn.dataset.alg = key;
 		btn.textContent = alg.name;
 		li.appendChild(btn);
@@ -220,18 +221,21 @@ function setArrayFromInput() {
 	let errorDiv = document.getElementById("arrayInputError");
 	if (errorDiv) errorDiv.remove();
 	if (!input) return;
-	const arr = input
+	let arr = input
 		.split(",")
 		.map((x) => parseInt(x, 10))
 		.filter((x) => !isNaN(x));
-	if (arr.length < 1 || arr.length > 20) {
-		showArrayInputError("Array must have between 1 and 20 numbers.");
+	if (arr.length < 1 || arr.length > 40) {
+		showArrayInputError("Array must have between 1 and 40 numbers.");
 		return;
 	}
 	if (arr.some((x) => !Number.isFinite(x))) {
 		showArrayInputError("All values must be valid numbers.");
 		return;
 	}
+	// Always sort the array and update the input field
+	arr.sort((a, b) => a - b);
+	arrayInput.value = arr.join(",");
 	array = arr;
 	originalArray = arr.slice();
 	renderArray(array);
@@ -250,10 +254,16 @@ function showArrayInputError(msg) {
 }
 
 function setRandomArray() {
-	const len = Math.floor(Math.random() * 6) + 5; // 5-10 elements
+	const len = Math.floor(Math.random() * 11) + 20; // 20-30 elements
 	array = Array.from({ length: len }, () => Math.floor(Math.random() * 40) + 1);
+	array.sort((a, b) => a - b); // Ensure sorted array
 	originalArray = array.slice();
 	if (arrayInput) arrayInput.value = array.join(",");
+	// Set target to a random element from the array
+	if (typeof targetInput !== "undefined" && targetInput && array.length > 0) {
+		const randIdx = Math.floor(Math.random() * array.length);
+		targetInput.value = array[randIdx];
+	}
 	renderArray(array);
 	updateStats();
 }
@@ -277,6 +287,40 @@ function updateStats() {
 	setText("algResult", stats.found ? `Found at index ${stats.index}` : stats.found === false && stats.index === -1 ? "Not found" : "-");
 	const title = document.getElementById("algTitle");
 	if (title) title.textContent = algorithms[currentAlg].name;
+
+	// Calculate min/max comparisons for current algorithm and array length
+	let min = 0,
+		max = 0;
+	const n = array.length;
+	if (algorithms[currentAlg] && n > 0) {
+		switch (currentAlg) {
+			case "linear":
+				min = 1;
+				max = n;
+				break;
+			case "binary":
+				min = 1;
+				max = Math.ceil(Math.log2(n)) + 1;
+				break;
+			case "jump":
+				min = 1;
+				max = Math.ceil(Math.sqrt(n)) + Math.ceil(Math.sqrt(n));
+				break;
+			case "interpolation":
+				min = 1;
+				max = Math.ceil(Math.log2(n));
+				break;
+			case "exponential":
+				min = 1;
+				max = Math.ceil(Math.log2(n)) + 1;
+				break;
+			default:
+				min = 1;
+				max = n;
+		}
+	}
+	setText("algMinComparisons", min);
+	setText("algMaxComparisons", max);
 }
 
 // --- Live Timer ---
@@ -397,8 +441,8 @@ function renderAlgInfo() {
 		return;
 	}
 	infoDiv.innerHTML = `
-        <div><b>How it works:</b><br>${alg.info.how}</div>
-        <div class="mt-2"><b>Pros:</b><br>${alg.info.pros}</div>
-        <div class="mt-2"><b>Cons:</b><br>${alg.info.cons}</div>
-    `;
+		<div><b>How it works:</b><br>${alg.info.how}</div>
+		<div class="mt-2"><b>Pros:</b><br>${alg.info.pros}</div>
+		<div class="mt-2"><b>Cons:</b><br>${alg.info.cons}</div>
+	`;
 }
